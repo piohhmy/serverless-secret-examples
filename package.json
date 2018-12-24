@@ -1,0 +1,19 @@
+{
+  "name": "parameter-store-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "serverless": "^1.35.1",
+    "serverless-pseudo-parameters": "^2.4.0"
+  },
+  "devDependencies": {
+    "serverless-iam-roles-per-function": "^1.0.4",
+    "serverless-kms-secrets": "^1.0.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
