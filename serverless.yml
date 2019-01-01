@@ -31,12 +31,12 @@ functions:
           - 'kms:Decrypt' 
         Resource: !GetAtt ServerlessDemoKey.Arn
 
-  deploytime-parameter-store-plaintext: # NOT RECOMMENDED (Not encrypted in CF)
+  deploytime-ssm-plaintext: # NOT RECOMMENDED (Not encrypted in CF)
     handler: envvar.handler
     environment:
       SECRETKEY: ${ssm:/my/path/to/secretkey~true}
 
-  deploytime-parameter-store-ciphertext: # Secure, but complicated
+  deploytime-ssm-ciphertext: # Secure, but complicated
     handler: kms.handler
     environment:
       ENCRYPTED_SECRETKEY: "${ssm:/my/path/to/secretkey~false}"
@@ -48,7 +48,7 @@ functions:
           - 'kms:Decrypt'
         Resource: !GetAtt ServerlessDemoKey.Arn
 
-  runtime-parameter-store: # Secure
+  runtime-ssm: # Secure
     handler: parameterstore.handler
     environment:
       SSM_PATH_TO_SECRETKEY: /my/path/to/secretkey
@@ -65,11 +65,32 @@ functions:
         Resource: !GetAtt ServerlessDemoKey.Arn
 
 
-  runtime-secrets-manager-decrypted: # Secure
+  deploytime-secrets-manager: # NOT RECCOMENDED (Not encrypted in CF)
+    handler: envvar.handler
+    environment:
+      SECRETKEY: ${ssm:/aws/reference/secretsmanager/path/to/secretkey~true}
+
+
+  runtime-secrets-manager: # Secure
     handler: parameterstore.handler
     environment:
-      SECRET_KEY: ${ssm:/aws/reference/secretsmanager/path/to/secretkey~true}
-
+      SSM_PATH_TO_SECRETKEY: /aws/reference/secretsmanager/path/to/secretkey
+    iamRoleStatements:
+          -  
+            Effect: Allow
+            Action:
+              - ssm:GetParameter
+            Resource: 'arn:aws:ssm:${self:provider.region}:*:parameter/aws/reference/secretsmanager/path/to/secretkey'
+          -
+            Effect: Allow
+            Action:
+              - 'kms:Decrypt'
+            Resource: !GetAtt ServerlessDemoKey.Arn
+          -
+            Effect: Allow
+            Action:
+              - 'secretsmanager:GetSecretValue'
+            Resource: arn:aws:secretsmanager:${self:provider.region}:*:secret:path/to/secretkey*
 resources:
   Resources:
     ServerlessDemoKeyAlias:
@@ -118,4 +139,5 @@ resources:
                 - 'kms:Delete*'
                 - 'kms:ScheduleKeyDeletion'
                 - 'kms:CancelKeyDeletion'
+                - 'kms:GenerateDataKey'
               Resource: '*'
